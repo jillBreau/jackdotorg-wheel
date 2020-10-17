@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>jack.org branded wheel</title>
+        <style type="text/css">
+            body {
+                background-color: #00adee;
+            }
+
+            div {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-evenly;
+                align-items: center;
+            }
+
+            div.container {
+                margin: 60px 0;
+                width: 50%;
+            }
+
+            div.wheel {
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+            }
+
+            div.button {
+                border: 1px solid white;
+                border-top: none;
+                width: 360px;
+                height: 105px;
+            }
+
+            div.upload {
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            p {
+                font-family: Helvetica, sans-serif;
+                text-align: center;
+                width: 80%;
+            }
+
+            img {
+                width: 400px;
+                margin-bottom: 16px;
+            }
+
+            svg {
+                background-color:#00adee;
+                border: 1px solid white;
+                border-bottom: none;
+                overflow:visible;
+            }
+
+            .name {
+                font-size: 20px;
+                font-weight: 600;
+                font-family: Helvetica, sans-serif;
+            }
+
+            .winner, .congrats {
+                font-size: 26px;
+                font-weight: 600;
+                font-style: italic;
+                font-family: Helvetica, sans-serif;
+            }
+
+            button {
+                background-color: #1d1d1f;
+                border: none;
+                color: #f05a22;
+                padding: 10px 32px;
+                font-size: 20px;
+                font-weight: 800;
+                font-family: Helvetica, sans-serif;
+                cursor: pointer;
+                outline: none;
+            }
+            button:hover {
+                color: #1d1d1f;
+                background-color: #f05a22;
+            }
+            button:focus {
+                color: #1d1d1f;
+                background-color: #f05a22;
+            }
+        </style>
+
+        <script src="https://d3js.org/d3.v6.min.js"></script>
+        <script>
+
+            let usernames = ["** No data entered **"];
+
+            window.onload = function() {
+                function readFile(evt) {
+                    var f = evt.target.files[0]; 
+                    if (f) {
+                    var r = new FileReader();
+                        r.onload = function(e) { 
+                            usernames = e.target.result.split("\n")[0].split(",");
+                        }
+                        r.readAsText(f);
+                    } else { 
+                        alert("Failed to load file");
+                    }
+                }
+                document.getElementById("csv-input").addEventListener('change', readFile);
+            }
+
+
+            function drawIt() {
+
+                let mySelection = d3.select("#drawing-place");
+
+                mySelection
+                    .selectAll("circle")
+                    .attr("class", "")
+                    .attr("fill", 'none');
+
+                mySelection
+                    .selectAll("text")
+                    .attr("class", "")
+                    .attr("fill", 'none');
+
+                mySelection
+                    .append("circle")
+                    .attr("class", "active")
+                    .attr("cx", "180")
+                    .attr("cy", "300")
+                    .attr("r", "160")
+                    .attr("fill", "#1d1d1f");
+
+                const colours = ['#f05a22', '#00adee'];
+                var username = "";
+                var time = 0;
+                var angle = 0;
+                var colour = 0;
+
+                var myInterval = setInterval(() => {
+                    time += 1;
+                    angle = (angle % 360) + 1;
+
+                    if (time < 1550) {
+                        if (time < 1438 && angle % 24 === 0) {
+                            mySelection
+                                .selectAll("text")
+                                .attr("class", "")
+                                .attr("fill", 'none');
+
+                            colour += 1;
+                            username = usernames[Math.floor(Math.random() * usernames.length)];
+
+                            mySelection
+                                .append("text")
+                                .attr("class", "name active")
+                                .text(username)
+                                .attr("x", "180")
+                                .attr("y", "300")
+                                .attr("text-anchor", "middle")
+                                .attr("fill", colours[colour % 2]);
+                        }
+                        
+                        if (time < 1438) {
+                            mySelection
+                                .selectAll("rect")
+                                .attr("class", "")
+                                .attr("fill", 'none');
+
+                            mySelection
+                                .append("rect")
+                                .attr("class", "active")
+                                .attr("x", "180")
+                                .attr("y", "140")
+                                .attr("transform", `rotate(${angle},180,300)`)
+                                .attr("width", "18")
+                                .attr("height", "18")
+                                .attr("fill", "#f05a22");
+                        }
+
+                    } else {
+
+                        clearInterval(myInterval);
+
+                        mySelection
+                            .append("text")
+                            .attr("class", "congrats")
+                            .text("Congratulations")
+                            .attr("x", "180")
+                            .attr("y", "55")
+                            .attr("text-anchor", "middle")
+                            .attr("fill", '#1d1d1f');
+
+                        mySelection
+                            .select("text.congrats")
+                            .transition()
+                            .duration(1100)
+                            .attr("y", "110");
+
+                        mySelection
+                            .append("text")
+                            .attr("class", "winner")
+                            .text(`${username}!`)
+                            .attr("x", "180")
+                            .attr("y", "85")
+                            .attr("text-anchor", "middle")
+                            .attr("fill", '#1d1d1f');
+
+                        mySelection
+                            .select("text.winner")
+                            .transition()
+                            .duration(1100)
+                            .attr("y", "140");
+
+                        mySelection
+                            .select("rect.active")
+                            .transition()
+                            .duration(900)
+                            .attr("y", "180");
+
+                        mySelection
+                            .select("circle.active")
+                            .transition()
+                            .duration(900)
+                            .attr("cy", "340");
+
+                        mySelection
+                            .select("text.active")
+                            .transition()
+                            .duration(900)
+                            .attr("y", "340");
+
+                    }
+
+                }, () => 200);
+                
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <div>
+
+            <div class="upload container">
+                <p>Step 1: Upload a one-line <code>.csv</code> file like the following with your data.</p>
+                <img src="example_csv.png" alt="One-line .csv file"/>
+                <input id="csv-input" type="file" accept=".csv" />
+                <p>Step 2: Start a screen recording within the white rectangle, which has the aspect ratio of an instagram story (1080 pixels x 1920 pixels).</p>
+                <p>Step 3: Click the "Select Winner" button to spin the wheel with your data.</p>
+                <p>Step 4: Stop the screen recording once the winner has been announced, which will take the permitted time of an instagram story (15 seconds).</p>
+                <p>Reload the page to clear the text in the white rectangle</p>
+            </div>
+
+            <div class="wheel container">
+                <svg id="drawing-place" height="535" width="360">
+                    <circle class="active" cx="180" cy="300" r="160" fill="#1d1d1f" />
+                </svg>
+                <div class="wheel button">
+                    <button onclick="drawIt();">Select Winner</button>
+                </div>
+            </div>
+            
+        </div>
+    </body>
+
+</html>
